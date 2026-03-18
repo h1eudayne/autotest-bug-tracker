@@ -11,55 +11,133 @@
       border-radius: 8px; 
       overflow: hidden;
       border: 1px solid #30363d;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
+
+    /* ─── TITLEBAR ─── */
     .titlebar { 
       background: #161b22; 
-      padding: 6px 10px; 
+      padding: 8px 10px; 
       display: flex; 
       justify-content: space-between; 
       align-items: center;
       -webkit-app-region: drag;
       border-bottom: 1px solid #30363d;
+      flex-shrink: 0;
     }
-    .titlebar h3 { font-size: 0.75rem; color: #e94560; }
-    .close-btn { 
-      -webkit-app-region: no-drag;
-      background: none; border: none; color: #8b949e; 
-      cursor: pointer; font-size: 0.9rem; 
+    .titlebar-left { display: flex; align-items: center; gap: 6px; }
+    .titlebar h3 { font-size: 0.8rem; color: #e94560; }
+    .title-count {
+      font-size: 0.6rem; background: #f8514933; color: #f85149;
+      padding: 1px 6px; border-radius: 10px; font-weight: 600;
     }
-    .close-btn:hover { color: #f85149; }
     
-    .bug-list { padding: 6px; max-height: 350px; overflow-y: auto; }
-    .bug-item { 
-      padding: 6px 8px; 
-      margin-bottom: 4px;
-      background: #161b22; 
-      border-radius: 4px; 
-      cursor: pointer;
-      border-left: 3px solid transparent;
-      font-size: 0.8rem;
+    .titlebar-btns { 
+      display: flex; gap: 2px; 
+      -webkit-app-region: no-drag; 
+    }
+    .tb { 
+      background: none; border: none; color: #8b949e; 
+      cursor: pointer; font-size: 0.85rem; 
+      width: 26px; height: 22px;
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+    .tb:hover { background: #21262d; color: #c9d1d9; }
+    .tb.close:hover { background: #da3633; color: white; }
+    .tb.pin { font-size: 0.75rem; }
+    .tb.pin.active { color: #58a6ff; }
+    .tb.pin.inactive { color: #484f58; }
+
+    /* ─── SORT BAR ─── */
+    .sort-bar {
+      padding: 4px 10px;
       display: flex;
       align-items: center;
-      gap: 6px;
+      justify-content: space-between;
+      font-size: 0.6rem;
+      color: #8b949e;
+      background: #0d1117;
+      border-bottom: 1px solid #21262d;
+      flex-shrink: 0;
     }
-    .bug-item:hover { background: #21262d; }
-    .bug-item.high { border-left-color: #d29922; }
+    .sort-label { color: #58a6ff; }
+    .pin-status { 
+      font-size: 0.55rem; 
+      padding: 1px 5px; border-radius: 3px;
+    }
+    .pin-status.on { background: #58a6ff1a; color: #58a6ff; }
+    .pin-status.off { background: #484f581a; color: #484f58; }
+
+    /* ─── BUG LIST ─── */
+    .bug-list { 
+      padding: 6px; 
+      overflow-y: auto; 
+      flex: 1;
+    }
+    .bug-item { 
+      padding: 8px 10px; 
+      margin-bottom: 4px;
+      background: #161b22; 
+      border-radius: 6px; 
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      font-size: 0.78rem;
+      transition: all 0.15s ease;
+    }
+    .bug-item:hover { background: #21262d; transform: translateX(2px); }
+    .bug-item:active { transform: scale(0.98); }
     .bug-item.critical { border-left-color: #f85149; }
+    .bug-item.high { border-left-color: #d29922; }
     .bug-item.medium { border-left-color: #3fb950; }
     .bug-item.low { border-left-color: #58a6ff; }
     
-    .sev { 
-      font-size: 0.6rem; font-weight: 700; 
-      padding: 1px 4px; border-radius: 3px;
-      text-transform: uppercase; min-width: 32px; text-align: center;
+    .bug-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 3px;
     }
-    .sev.high { background: #d292221a; color: #d29922; }
+    .sev { 
+      font-size: 0.55rem; font-weight: 700; 
+      padding: 1px 5px; border-radius: 3px;
+      text-transform: uppercase; min-width: 36px; text-align: center;
+      letter-spacing: 0.3px;
+    }
     .sev.critical { background: #f851491a; color: #f85149; }
+    .sev.high { background: #d292221a; color: #d29922; }
     .sev.medium { background: #3fb9501a; color: #3fb950; }
     .sev.low { background: #58a6ff1a; color: #58a6ff; }
     
-    .bug-text { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .empty { text-align: center; padding: 2rem; color: #8b949e; font-size: 0.8rem; }
+    .bug-title { 
+      flex: 1; white-space: nowrap; overflow: hidden; 
+      text-overflow: ellipsis; font-weight: 500;
+    }
+    .bug-meta {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-left: 42px;
+    }
+    .bug-file {
+      font-size: 0.65rem; color: #8b949e; 
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      flex: 1;
+    }
+    .bug-file .line-num { color: #58a6ff; }
+    .open-icon { 
+      font-size: 0.6rem; color: #484f58; 
+      flex-shrink: 0; margin-left: 4px;
+    }
+    
+    .empty { 
+      text-align: center; padding: 2rem; color: #8b949e; 
+      font-size: 0.85rem; 
+      display: flex; flex-direction: column; align-items: center;
+      gap: 8px;
+    }
+    .empty-icon { font-size: 2.5rem; }
     
     .bug-list::-webkit-scrollbar { width: 4px; }
     .bug-list::-webkit-scrollbar-track { background: transparent; }
@@ -68,8 +146,18 @@
 </head>
 <body>
   <div class="titlebar">
-    <h3>🐛 Bug Widget</h3>
-    <button class="close-btn" onclick="closeWidget()">✕</button>
+    <div class="titlebar-left">
+      <h3>🐛 Bugs <span class="title-count" id="bugCount">0</span></h3>
+    </div>
+    <div class="titlebar-btns">
+      <button class="tb pin active" id="pinBtn" onclick="togglePin()" title="Pin on top">📌</button>
+      <button class="tb" onclick="minimizeWidget()" title="Minimize">─</button>
+      <button class="tb close" onclick="closeWidget()" title="Close">✕</button>
+    </div>
+  </div>
+  <div class="sort-bar">
+    <div><span class="sort-label">▼</span> Critical → Low</div>
+    <span class="pin-status on" id="pinStatus">📌 Pinned</span>
   </div>
   <div class="bug-list" id="bugList">
     <div class="empty">Loading...</div>
@@ -77,25 +165,51 @@
   
   <script>
     const { ipcRenderer } = require('electron');
+    const pathModule = require('path');
+
+    const SEVERITY_ORDER = { critical: 0, high: 1, medium: 2, low: 3 };
 
     async function loadBugs() {
       const bugs = await ipcRenderer.invoke('get-bugs');
       const openBugs = bugs.filter(b => b.status === 'open');
+      openBugs.sort((a, b) => 
+        (SEVERITY_ORDER[a.severity] || 99) - (SEVERITY_ORDER[b.severity] || 99)
+      );
       renderBugs(openBugs);
     }
 
     function renderBugs(bugs) {
       const list = document.getElementById('bugList');
+      const count = document.getElementById('bugCount');
+      count.textContent = bugs.length;
+
       if (!bugs.length) {
-        list.innerHTML = '<div class="empty">✅ No open bugs</div>';
+        list.innerHTML = `
+          <div class="empty">
+            <div class="empty-icon">✅</div>
+            <div>No open bugs!</div>
+          </div>`;
         return;
       }
-      list.innerHTML = bugs.map(b => `
-        <div class="bug-item ${b.severity}" onclick="openCode('${b.file}', ${b.line || 1})" title="${b.error || b.title}">
-          <span class="sev ${b.severity}">${b.severity}</span>
-          <span class="bug-text">${escapeHtml(b.title)}</span>
+
+      list.innerHTML = bugs.map(b => {
+        const fileName = b.file ? pathModule.basename(b.file) : 'unknown';
+        const filePath = escapeAttr(b.file || '');
+        const line = b.line || 1;
+        return `
+        <div class="bug-item ${b.severity}" 
+             onclick="openCode('${filePath}', ${line})"
+             title="Click to open project + navigate to bug">
+          <div class="bug-header">
+            <span class="sev ${b.severity}">${b.severity}</span>
+            <span class="bug-title">${escapeHtml(b.title)}</span>
+          </div>
+          <div class="bug-meta">
+            <span class="bug-file">${escapeHtml(fileName)}:<span class="line-num">${line}</span></span>
+            <span class="open-icon">📂 Open in VS Code</span>
+          </div>
         </div>
-      `).join('');
+      `}).join('');
     }
 
     function escapeHtml(t) {
@@ -104,23 +218,59 @@
       return d.innerHTML;
     }
 
+    function escapeAttr(t) {
+      return t.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
+
+    // Open project folder in VS Code + go to file:line
     function openCode(file, line) {
       ipcRenderer.invoke('open-code', file, line);
+    }
+
+    // Toggle pin (always-on-top)
+    async function togglePin() {
+      const pinned = await ipcRenderer.invoke('toggle-pin');
+      updatePinUI(pinned);
+    }
+
+    function updatePinUI(pinned) {
+      const btn = document.getElementById('pinBtn');
+      const status = document.getElementById('pinStatus');
+      if (pinned) {
+        btn.className = 'tb pin active';
+        btn.title = 'Unpin from top';
+        status.className = 'pin-status on';
+        status.textContent = '📌 Pinned';
+      } else {
+        btn.className = 'tb pin inactive';
+        btn.title = 'Pin on top';
+        status.className = 'pin-status off';
+        status.textContent = '📌 Unpinned';
+      }
+    }
+
+    function minimizeWidget() {
+      ipcRenderer.invoke('minimize-widget');
     }
 
     function closeWidget() {
       ipcRenderer.invoke('close-widget');
     }
 
+    // Init pin state
+    ipcRenderer.invoke('get-pin-state').then(updatePinUI);
+
     // Listen for realtime updates
     ipcRenderer.on('bugs-updated', (event, bugs) => {
       const openBugs = bugs.filter(b => b.status === 'open');
+      openBugs.sort((a, b) => 
+        (SEVERITY_ORDER[a.severity] || 99) - (SEVERITY_ORDER[b.severity] || 99)
+      );
       renderBugs(openBugs);
     });
 
     // Initial load
     loadBugs();
-    // Also poll every 3s as backup
     setInterval(loadBugs, 3000);
   </script>
 </body>
