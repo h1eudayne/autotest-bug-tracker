@@ -1,0 +1,46 @@
+name: AutoTest CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install API dependencies
+        run: cd web-app && npm install
+
+      - name: Install Frontend dependencies
+        run: cd web-app/frontend && npm install
+
+      - name: Install Playwright
+        run: npm install && npx playwright install --with-deps chromium
+
+      - name: Run Playwright tests
+        run: npx playwright test
+        continue-on-error: true
+
+      - name: Send results to n8n webhook
+        if: always()
+        run: |
+          node scripts/send-results.js
+        env:
+          N8N_WEBHOOK_URL: ${{ secrets.N8N_WEBHOOK_URL }}
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results.json

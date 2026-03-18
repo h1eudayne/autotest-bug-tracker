@@ -1,0 +1,34 @@
+[
+  {
+    "test": "TC1 - Login with valid credentials",
+    "status": "passed",
+    "duration": 331,
+    "error": null,
+    "file": "login.spec.js",
+    "line": 4
+  },
+  {
+    "test": "TC2 - Login with wrong password shows error",
+    "status": "passed",
+    "duration": 405,
+    "error": null,
+    "file": "login.spec.js",
+    "line": 17
+  },
+  {
+    "test": "TC3 - Login with empty inputs shows error",
+    "status": "passed",
+    "duration": 259,
+    "error": null,
+    "file": "login.spec.js",
+    "line": 30
+  },
+  {
+    "test": "TC4 - Login with special characters handles safely",
+    "status": "failed",
+    "duration": 5300,
+    "error": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('error-message')\nExpected substring: \u001b[32m\"\u001b[7mi\u001b[27mnvalid \u001b[7mcharacters\u001b[27m\"\u001b[39m\nReceived string:    \u001b[31m\"\u001b[7mI\u001b[27mnvalid \u001b[7musername or password\u001b[27m\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('error-message')\u001b[22m\n\u001b[2m    7 × locator resolved to <div class=\"error-message\" data-testid=\"error-message\">Invalid username or password</div>\u001b[22m\n\u001b[2m      - unexpected value \"Invalid username or password\"\u001b[22m\n",
+    "file": "login.spec.js",
+    "line": 42
+  }
+]

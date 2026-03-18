@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bug Dashboard - AutoTest</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #0d1117; color: #c9d1d9; }
+    
+    .header { background: #161b22; padding: 1rem 2rem; border-bottom: 1px solid #30363d; display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { color: #e94560; font-size: 1.3rem; }
+    .stats { display: flex; gap: 1rem; }
+    .stat { background: #21262d; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem; }
+    .stat.high { border-left: 3px solid #f85149; }
+    .stat.open { border-left: 3px solid #d29922; }
+    
+    .filters { padding: 1rem 2rem; display: flex; gap: 1rem; background: #161b22; }
+    .filters select { background: #21262d; color: #c9d1d9; border: 1px solid #30363d; padding: 0.4rem 0.8rem; border-radius: 4px; font-size: 0.85rem; }
+    
+    .bug-list { padding: 1rem 2rem; }
+    .bug-item { background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 1rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 1rem; }
+    .bug-item:hover { border-color: #58a6ff; }
+    
+    .severity-badge { padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
+    .severity-badge.critical { background: #f85149; color: white; }
+    .severity-badge.high { background: #d29922; color: white; }
+    .severity-badge.medium { background: #3fb950; color: white; }
+    .severity-badge.low { background: #58a6ff; color: white; }
+    
+    .bug-info { flex: 1; }
+    .bug-title { font-size: 0.95rem; margin-bottom: 0.3rem; }
+    .bug-meta { font-size: 0.75rem; color: #8b949e; }
+    
+    .bug-actions { display: flex; gap: 0.5rem; }
+    .btn { padding: 0.3rem 0.7rem; border: 1px solid #30363d; border-radius: 4px; background: #21262d; color: #c9d1d9; cursor: pointer; font-size: 0.75rem; }
+    .btn:hover { background: #30363d; }
+    .btn.open-code { border-color: #58a6ff; color: #58a6ff; }
+    .btn.fix { border-color: #3fb950; color: #3fb950; }
+    
+    .status-badge { font-size: 0.7rem; padding: 0.15rem 0.4rem; border-radius: 4px; }
+    .status-badge.open { background: #d292221a; color: #d29922; border: 1px solid #d2992233; }
+    .status-badge.fixed { background: #3fb9501a; color: #3fb950; border: 1px solid #3fb95033; }
+    
+    .empty { text-align: center; padding: 3rem; color: #8b949e; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🐛 Bug Dashboard</h1>
+    <div class="stats" id="stats"></div>
+  </div>
+  
+  <div class="filters">
+    <select id="filterProject">
+      <option value="">All Projects</option>
+      <option value="web-login">web-login</option>
+    </select>
+    <select id="filterSeverity">
+      <option value="">All Severities</option>
+      <option value="critical">Critical</option>
+      <option value="high">High</option>
+      <option value="medium">Medium</option>
+      <option value="low">Low</option>
+    </select>
+    <select id="filterStatus">
+      <option value="">All Status</option>
+      <option value="open">Open</option>
+      <option value="fixed">Fixed</option>
+    </select>
+  </div>
+  
+  <div class="bug-list" id="bugList"></div>
+
+  <script>
+    const API = 'http://localhost:3001/api';
+
+    async function loadBugs() {
+      const project = document.getElementById('filterProject').value;
+      const severity = document.getElementById('filterSeverity').value;
+      const status = document.getElementById('filterStatus').value;
+
+      const params = new URLSearchParams();
+      if (project) params.set('project', project);
+      if (severity) params.set('severity', severity);
+      if (status) params.set('status', status);
+
+      const res = await fetch(`${API}/bugs?${params}`);
+      const bugs = await res.json();
+      renderBugs(bugs);
+    }
+
+    async function loadStats() {
+      const res = await fetch(`${API}/stats`);
+      const stats = await res.json();
+      document.getElementById('stats').innerHTML = `
+        <div class="stat open">Open: ${stats.open}</div>
+        <div class="stat high">High: ${stats.high}</div>
+        <div class="stat">Total: ${stats.total}</div>
+      `;
+    }
+
+    function renderBugs(bugs) {
+      const list = document.getElementById('bugList');
+      if (bugs.length === 0) {
+        list.innerHTML = '<div class="empty">No bugs found 🎉</div>';
+        return;
+      }
+      list.innerHTML = bugs.map(bug => `
+        <div class="bug-item">
+          <span class="severity-badge ${bug.severity}">${bug.severity}</span>
+          <div class="bug-info">
+            <div class="bug-title">${escapeHtml(bug.title)}</div>
+            <div class="bug-meta">
+              ${bug.project} · ${bug.file || 'unknown'}:${bug.line || '?'} · ${new Date(bug.createdAt).toLocaleDateString()}
+            </div>
+          </div>
+          <span class="status-badge ${bug.status}">${bug.status}</span>
+          <div class="bug-actions">
+            <button class="btn open-code" onclick="openCode('${bug.file}', ${bug.line || 1})">📂 Open Code</button>
+            ${bug.status === 'open' ? `<button class="btn fix" onclick="markFixed('${bug.id}')">✅ Fixed</button>` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function escapeHtml(text) {
+      const d = document.createElement('div');
+      d.textContent = text;
+      return d.innerHTML;
+    }
+
+    async function openCode(file, line) {
+      await fetch(`${API}/bugs/open-code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ file, line })
+      });
+    }
+
+    async function markFixed(id) {
+      await fetch(`${API}/bugs/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'fixed' })
+      });
+      loadBugs();
+      loadStats();
+    }
+
+    // Event listeners
+    document.getElementById('filterProject').addEventListener('change', loadBugs);
+    document.getElementById('filterSeverity').addEventListener('change', loadBugs);
+    document.getElementById('filterStatus').addEventListener('change', loadBugs);
+
+    // Auto refresh every 5s
+    setInterval(() => { loadBugs(); loadStats(); }, 5000);
+
+    // Initial load
+    loadBugs();
+    loadStats();
+  </script>
+</body>
+</html>

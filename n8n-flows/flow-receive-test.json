@@ -1,0 +1,61 @@
+{
+  "name": "Receive Test Results",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "test-results",
+        "responseMode": "onReceived",
+        "responseData": "allEntries"
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Parse incoming test results\nconst data = items[0].json;\nconst failedTests = (data.results || []).filter(r => r.status === 'failed');\nconst passedTests = (data.results || []).filter(r => r.status === 'passed');\n\nreturn [{\n  json: {\n    project: data.project || 'unknown',\n    timestamp: data.timestamp,\n    total: data.total,\n    passed: passedTests.length,\n    failed: failedTests.length,\n    failedTests: failedTests,\n    hasFailed: failedTests.length > 0\n  }\n}];"
+      },
+      "name": "Parse Results",
+      "type": "n8n-nodes-base.function",
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.hasFailed }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Has Failures?",
+      "type": "n8n-nodes-base.if",
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// AI Analysis simulation - generate bug report for each failed test\nconst failed = items[0].json.failedTests;\nconst bugs = failed.map(t => ({\n  project: items[0].json.project,\n  title: t.test,\n  severity: t.error && t.error.includes('security') ? 'critical' : 'high',\n  file: t.file,\n  line: t.line,\n  error: t.error,\n  status: 'open',\n  aiAnalysis: `Test '${t.test}' failed. Root cause: Input validation missing for special characters. Recommendation: Add input sanitization before processing.`,\n  createdAt: new Date().toISOString()\n}));\n\nreturn bugs.map(b => ({ json: b }));"
+      },
+      "name": "AI Analysis",
+      "type": "n8n-nodes-base.function",
+      "position": [800, 200]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Save bug to file (in real scenario, use database node)\nconst bug = items[0].json;\nconsole.log('Bug saved:', JSON.stringify(bug));\nreturn items;"
+      },
+      "name": "Save Bug",
+      "type": "n8n-nodes-base.function",
+      "position": [1000, 200]
+    }
+  ],
+  "connections": {
+    "Webhook": { "main": [[{ "node": "Parse Results", "type": "main", "index": 0 }]] },
+    "Parse Results": { "main": [[{ "node": "Has Failures?", "type": "main", "index": 0 }]] },
+    "Has Failures?": { "main": [[{ "node": "AI Analysis", "type": "main", "index": 0 }], []] },
+    "AI Analysis": { "main": [[{ "node": "Save Bug", "type": "main", "index": 0 }]] }
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "name": "Daily Bug Reminder",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "0 9 * * *" }]
+        }
+      },
+      "name": "Cron 9AM",
+      "type": "n8n-nodes-base.cron",
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Read open bugs from file/API\n// In real setup, use HTTP Request node to call bug dashboard API\nconst openBugs = [\n  { title: 'Login fails with special char', severity: 'high', project: 'web-login' }\n];\n\nconst summary = openBugs.length > 0\n  ? `🐛 ${openBugs.length} bug(s) chưa fix:\\n${openBugs.map(b => `  [${b.severity.toUpperCase()}] ${b.title}`).join('\\n')}`\n  : '✅ Không có bug nào chưa fix!';\n\nreturn [{ json: { summary, count: openBugs.length, bugs: openBugs } }];"
+      },
+      "name": "Get Open Bugs",
+      "type": "n8n-nodes-base.function",
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// AI Summarize open bugs\nconst data = items[0].json;\nconst report = `📊 Daily Bug Report\\n${data.summary}\\n\\nAction needed: Fix ${data.count} open bug(s) today.`;\nreturn [{ json: { report } }];"
+      },
+      "name": "AI Summarize",
+      "type": "n8n-nodes-base.function",
+      "position": [600, 300]
+    }
+  ],
+  "connections": {
+    "Cron 9AM": { "main": [[{ "node": "Get Open Bugs", "type": "main", "index": 0 }]] },
+    "Get Open Bugs": { "main": [[{ "node": "AI Summarize", "type": "main", "index": 0 }]] }
+  }
+}

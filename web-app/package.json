@@ -1,0 +1,14 @@
+{
+  "name": "web-app-api",
+  "version": "1.0.0",
+  "description": "Express API server for AutoTest login",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "cors": "^2.8.5"
+  }
+}

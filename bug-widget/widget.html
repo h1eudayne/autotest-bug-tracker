@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: 'Segoe UI', sans-serif; 
+      background: rgba(13, 17, 23, 0.95); 
+      color: #c9d1d9; 
+      border-radius: 8px; 
+      overflow: hidden;
+      border: 1px solid #30363d;
+    }
+    .titlebar { 
+      background: #161b22; 
+      padding: 6px 10px; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center;
+      -webkit-app-region: drag;
+      border-bottom: 1px solid #30363d;
+    }
+    .titlebar h3 { font-size: 0.75rem; color: #e94560; }
+    .close-btn { 
+      -webkit-app-region: no-drag;
+      background: none; border: none; color: #8b949e; 
+      cursor: pointer; font-size: 0.9rem; 
+    }
+    .close-btn:hover { color: #f85149; }
+    
+    .bug-list { padding: 6px; max-height: 350px; overflow-y: auto; }
+    .bug-item { 
+      padding: 6px 8px; 
+      margin-bottom: 4px;
+      background: #161b22; 
+      border-radius: 4px; 
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .bug-item:hover { background: #21262d; }
+    .bug-item.high { border-left-color: #d29922; }
+    .bug-item.critical { border-left-color: #f85149; }
+    .bug-item.medium { border-left-color: #3fb950; }
+    .bug-item.low { border-left-color: #58a6ff; }
+    
+    .sev { 
+      font-size: 0.6rem; font-weight: 700; 
+      padding: 1px 4px; border-radius: 3px;
+      text-transform: uppercase; min-width: 32px; text-align: center;
+    }
+    .sev.high { background: #d292221a; color: #d29922; }
+    .sev.critical { background: #f851491a; color: #f85149; }
+    .sev.medium { background: #3fb9501a; color: #3fb950; }
+    .sev.low { background: #58a6ff1a; color: #58a6ff; }
+    
+    .bug-text { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .empty { text-align: center; padding: 2rem; color: #8b949e; font-size: 0.8rem; }
+    
+    .bug-list::-webkit-scrollbar { width: 4px; }
+    .bug-list::-webkit-scrollbar-track { background: transparent; }
+    .bug-list::-webkit-scrollbar-thumb { background: #30363d; border-radius: 2px; }
+  </style>
+</head>
+<body>
+  <div class="titlebar">
+    <h3>🐛 Bug Widget</h3>
+    <button class="close-btn" onclick="closeWidget()">✕</button>
+  </div>
+  <div class="bug-list" id="bugList">
+    <div class="empty">Loading...</div>
+  </div>
+  
+  <script>
+    const { ipcRenderer } = require('electron');
+
+    async function loadBugs() {
+      const bugs = await ipcRenderer.invoke('get-bugs');
+      const openBugs = bugs.filter(b => b.status === 'open');
+      renderBugs(openBugs);
+    }
+
+    function renderBugs(bugs) {
+      const list = document.getElementById('bugList');
+      if (!bugs.length) {
+        list.innerHTML = '<div class="empty">✅ No open bugs</div>';
+        return;
+      }
+      list.innerHTML = bugs.map(b => `
+        <div class="bug-item ${b.severity}" onclick="openCode('${b.file}', ${b.line || 1})" title="${b.error || b.title}">
+          <span class="sev ${b.severity}">${b.severity}</span>
+          <span class="bug-text">${escapeHtml(b.title)}</span>
+        </div>
+      `).join('');
+    }
+
+    function escapeHtml(t) {
+      const d = document.createElement('div');
+      d.textContent = t;
+      return d.innerHTML;
+    }
+
+    function openCode(file, line) {
+      ipcRenderer.invoke('open-code', file, line);
+    }
+
+    function closeWidget() {
+      ipcRenderer.invoke('close-widget');
+    }
+
+    // Listen for realtime updates
+    ipcRenderer.on('bugs-updated', (event, bugs) => {
+      const openBugs = bugs.filter(b => b.status === 'open');
+      renderBugs(openBugs);
+    });
+
+    // Initial load
+    loadBugs();
+    // Also poll every 3s as backup
+    setInterval(loadBugs, 3000);
+  </script>
+</body>
+</html>
